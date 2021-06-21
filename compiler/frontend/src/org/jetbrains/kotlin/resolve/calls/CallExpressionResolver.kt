@@ -359,8 +359,11 @@ class CallExpressionResolver(
             KotlinTypeInfo {
         var initialDataFlowInfoForArguments = context.dataFlowInfo
         val receiverDataFlowValue = (receiver as? ReceiverValue)?.let { dataFlowValueFactory.createDataFlowValue(it, context) }
-        val receiverCanBeNull = receiverDataFlowValue != null &&
-                initialDataFlowInfoForArguments.getStableNullability(receiverDataFlowValue).canBeNull()
+        val receiverCanBeNull = if (context.languageVersionSettings.supportsFeature(LanguageFeature.SafeCallIsAlwaysNullable)) {
+            true
+        } else {
+            receiverDataFlowValue != null && initialDataFlowInfoForArguments.getStableNullability(receiverDataFlowValue).canBeNull()
+        }
 
         val callOperationNode = AstLoadingFilter.forceAllowTreeLoading(element.qualified.containingFile, ThrowableComputable {
             element.node

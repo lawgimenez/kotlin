@@ -212,6 +212,7 @@ enum class LanguageFeature(
     ProperTypeInferenceConstraintsProcessing(KOTLIN_1_6, kind = BUG_FIX),
     ClassTypeParameterAnnotations(KOTLIN_1_6),
     ProhibitExhaustiveWhensOnNonTrivialConstBooleanExpressions(KOTLIN_1_6),
+    SafeCallIsAlwaysNullable(KOTLIN_1_6),
 
     // Temporarily disabled, see KT-27084/KT-22379
     SoundSmartcastFromLoopConditionForLoopAssignedVariables(sinceVersion = null, kind = BUG_FIX),
