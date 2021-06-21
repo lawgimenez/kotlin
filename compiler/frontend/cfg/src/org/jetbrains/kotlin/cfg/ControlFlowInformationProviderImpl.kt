@@ -37,10 +37,8 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 import org.jetbrains.kotlin.psi.psiUtil.forEachDescendantOfType
+import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.BindingContext.*
-import org.jetbrains.kotlin.resolve.BindingTrace
-import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
-import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.bindingContextUtil.getEnclosingDescriptor
 import org.jetbrains.kotlin.resolve.bindingContextUtil.isUsedAsExpression
 import org.jetbrains.kotlin.resolve.bindingContextUtil.isUsedAsResultOfLambda
@@ -56,12 +54,12 @@ import org.jetbrains.kotlin.resolve.calls.util.isSingleUnderscore
 import org.jetbrains.kotlin.resolve.checkers.PlatformDiagnosticSuppressor
 import org.jetbrains.kotlin.resolve.descriptorUtil.isEffectivelyExternal
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
-import org.jetbrains.kotlin.resolve.indexOrMinusOne
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExtensionReceiver
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils.*
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils
 import org.jetbrains.kotlin.types.isFlexible
+import org.jetbrains.kotlin.types.typeUtil.isBooleanOrNullableBoolean
 import org.jetbrains.kotlin.util.OperatorNameConventions
 
 class ControlFlowInformationProviderImpl private constructor(
@@ -1001,6 +999,10 @@ class ControlFlowInformationProviderImpl private constructor(
 
                 val elseEntry = element.entries.find { it.isElse }
                 val subjectExpression = element.subjectExpression
+                if (usedAsExpression && missingCases.isEmpty()) {
+                    checkExhaustiveBooleanWhenWithNonTrivialBooleanConstants(element)
+                }
+
                 if (usedAsExpression && missingCases.isNotEmpty()) {
                     if (elseEntry != null) continue
                     trace.report(NO_ELSE_IN_WHEN.on(element, missingCases))
@@ -1041,6 +1043,28 @@ class ControlFlowInformationProviderImpl private constructor(
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private fun checkExhaustiveBooleanWhenWithNonTrivialBooleanConstants(whenExpression: KtWhenExpression) {
+        if (whenExpression.elseExpression != null) return
+        val subjectExpression = whenExpression.subjectExpression ?: return
+        val subjectType = trace.getType(subjectExpression)
+        if (subjectType?.isBooleanOrNullableBoolean() != true) return
+        val expressionConditions = whenExpression.entries
+            .flatMap { it.conditions.asList() }
+            .filterIsInstance<KtWhenConditionWithExpression>()
+            .mapNotNull { it.expression }
+        for (condition in expressionConditions) {
+            if (condition !is KtConstantExpression && trace[COMPILE_TIME_VALUE, condition] != null) {
+                val factory =
+                    if (languageVersionSettings.supportsFeature(LanguageFeature.ProhibitExhaustiveWhensOnNonTrivialConstBooleanExpressions)) {
+                        NON_TRIVIAL_BOOLEAN_CONSTANT_IN_EXHAUSTIVE_WHEN_CONDITION
+                    } else {
+                        NON_TRIVIAL_BOOLEAN_CONSTANT_IN_EXHAUSTIVE_WHEN_CONDITION_WARNING
+                    }
+                trace.report(factory.on(condition))
             }
         }
     }

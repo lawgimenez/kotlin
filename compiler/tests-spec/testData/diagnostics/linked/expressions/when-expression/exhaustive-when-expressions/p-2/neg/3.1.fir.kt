@@ -47,7 +47,7 @@ fun case_5(value_1: Boolean): String {
 
 
 // TESTCASE NUMBER: 6
-fun case_6(value_1: Boolean): String = when (value_1) {
-    <!NON_TRIVIAL_BOOLEAN_CONSTANT_IN_EXHAUSTIVE_WHEN_CONDITION!>true && false && ((true || false)) || true && !!!false && !!!true<!> -> ""
-    <!NON_TRIVIAL_BOOLEAN_CONSTANT_IN_EXHAUSTIVE_WHEN_CONDITION!>true && false && ((true || false)) || true && !!!false<!> -> ""
+fun case_6(value_1: Boolean): String = <!NO_ELSE_IN_WHEN!>when<!> (value_1) {
+    true && false && ((true || false)) || true && !!!false && !!!true -> ""
+    true && false && ((true || false)) || true && !!!false -> ""
 }

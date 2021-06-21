@@ -30954,6 +30954,18 @@ public class DiagnosisCompilerTestFE10TestdataTestGenerated extends AbstractDiag
             }
 
             @Test
+            @TestMetadata("exhaustiveBooleanWhenWithUntrivialConst_error.kt")
+            public void testExhaustiveBooleanWhenWithUntrivialConst_error() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/when/exhaustiveBooleanWhenWithUntrivialConst_error.kt");
+            }
+
+            @Test
+            @TestMetadata("exhaustiveBooleanWhenWithUntrivialConst_warning.kt")
+            public void testExhaustiveBooleanWhenWithUntrivialConst_warning() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/when/exhaustiveBooleanWhenWithUntrivialConst_warning.kt");
+            }
+
+            @Test
             @TestMetadata("ExhaustiveBreakContinue.kt")
             public void testExhaustiveBreakContinue() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/when/ExhaustiveBreakContinue.kt");

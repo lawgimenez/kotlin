@@ -1082,6 +1082,9 @@ public interface Errors {
 
     DiagnosticFactory1<PsiElement, String> ILLEGAL_DECLARATION_IN_WHEN_SUBJECT = DiagnosticFactory1.create(ERROR);
 
+    DiagnosticFactory0<KtExpression> NON_TRIVIAL_BOOLEAN_CONSTANT_IN_EXHAUSTIVE_WHEN_CONDITION = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<KtExpression> NON_TRIVIAL_BOOLEAN_CONSTANT_IN_EXHAUSTIVE_WHEN_CONDITION_WARNING = DiagnosticFactory0.create(WARNING);
+
     // Type mismatch
 
     DiagnosticFactory2<KtExpression, KotlinType, KotlinType> TYPE_MISMATCH = DiagnosticFactory2.create(ERROR);

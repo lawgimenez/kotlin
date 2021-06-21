@@ -1,4 +1,4 @@
-// !LANGUAGE: +NewInference
+// !LANGUAGE: +NewInference +ProhibitExhaustiveWhensOnNonTrivialConstBooleanExpressions
 // !DIAGNOSTICS: -UNUSED_VARIABLE -ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE -UNUSED_VALUE -UNUSED_PARAMETER -UNUSED_EXPRESSION
 // SKIP_TXT
 // FULL_JDK
@@ -66,4 +66,25 @@ sealed class SClass {
     class A : SClass()
     class B : SClass()
     class C : SClass()
+}
+
+// TESTCASE NUMBER: 5
+
+fun case5() {
+    val b = false
+    val when1: Any = when (b) {
+        false -> { }
+        !false -> { }
+            <!REDUNDANT_ELSE_IN_WHEN!>else<!> -> { }
+    }
+
+    val when2: Any = when (b) {
+        false -> { }
+        <!NON_TRIVIAL_BOOLEAN_CONSTANT_IN_EXHAUSTIVE_WHEN_CONDITION!>!false<!> -> { }
+    }
+    val when3: Any = when (b) {
+        false -> { }
+            <!DUPLICATE_LABEL_IN_WHEN!>false<!> -> { }
+        <!NON_TRIVIAL_BOOLEAN_CONSTANT_IN_EXHAUSTIVE_WHEN_CONDITION!>!false<!> -> { }
+    }
 }

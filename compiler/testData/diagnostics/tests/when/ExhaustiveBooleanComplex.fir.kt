@@ -1,3 +1,4 @@
+// !LANGUAGE: +ProhibitExhaustiveWhensOnNonTrivialConstBooleanExpressions
 /*
  * KOTLIN DIAGNOSTICS SPEC TEST (NEGATIVE)
  *

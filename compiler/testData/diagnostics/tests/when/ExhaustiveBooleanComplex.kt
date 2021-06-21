@@ -1,3 +1,4 @@
+// !LANGUAGE: +ProhibitExhaustiveWhensOnNonTrivialConstBooleanExpressions
 /*
  * KOTLIN DIAGNOSTICS SPEC TEST (NEGATIVE)
  *
@@ -12,7 +13,7 @@
 fun foo(arg: Boolean): String {
     // Must be exhaustive
     return when(arg) {
-        2 == 2 -> "truth"
-        2 == 1 -> "falsehood"
+        <!NON_TRIVIAL_BOOLEAN_CONSTANT_IN_EXHAUSTIVE_WHEN_CONDITION!>2 == 2<!> -> "truth"
+        <!NON_TRIVIAL_BOOLEAN_CONSTANT_IN_EXHAUSTIVE_WHEN_CONDITION!>2 == 1<!> -> "falsehood"
     }
 }

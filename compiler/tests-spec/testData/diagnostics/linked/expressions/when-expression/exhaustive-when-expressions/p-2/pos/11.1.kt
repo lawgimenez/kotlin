@@ -1,4 +1,5 @@
 // SKIP_TXT
+// LANGUAGE: -ProhibitExhaustiveWhensOnNonTrivialConstBooleanExpressions
 
 /*
  * KOTLIN DIAGNOSTICS SPEC TEST (POSITIVE)
@@ -18,7 +19,7 @@ fun case_1(value_1: Boolean?): String = when (value_1) {
 
 // TESTCASE NUMBER: 2
 fun case_2(value_1: Boolean?): String = when (value_1) {
-    true && false && ((true || false)) || true && !!!false && !!!true -> ""
-    true && false && ((true || false)) || true && !!!false -> ""
+    <!NON_TRIVIAL_BOOLEAN_CONSTANT_IN_EXHAUSTIVE_WHEN_CONDITION_WARNING!>true && false && ((true || false)) || true && !!!false && !!!true<!> -> ""
+    <!NON_TRIVIAL_BOOLEAN_CONSTANT_IN_EXHAUSTIVE_WHEN_CONDITION_WARNING!>true && false && ((true || false)) || true && !!!false<!> -> ""
     null -> ""
 }

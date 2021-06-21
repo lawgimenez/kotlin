@@ -1,4 +1,4 @@
-// !LANGUAGE: +NewInference
+// !LANGUAGE: +NewInference -ProhibitExhaustiveWhensOnNonTrivialConstBooleanExpressions
 // !DIAGNOSTICS: -UNUSED_VARIABLE -ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE -UNUSED_VALUE -UNUSED_PARAMETER -UNUSED_EXPRESSION
 // SKIP_TXT
 // FULL_JDK
@@ -53,12 +53,12 @@ fun case2() {
 
     val when2: Any = when (b) {
         false -> { }
-        !false -> { }
+        <!NON_TRIVIAL_BOOLEAN_CONSTANT_IN_EXHAUSTIVE_WHEN_CONDITION_WARNING!>!false<!> -> { }
     }
     val when3: Any = when (b) {
         false -> { }
         <!DUPLICATE_LABEL_IN_WHEN!>false<!> -> { }
-        !false -> { }
+        <!NON_TRIVIAL_BOOLEAN_CONSTANT_IN_EXHAUSTIVE_WHEN_CONDITION_WARNING!>!false<!> -> { }
     }
 }
 
