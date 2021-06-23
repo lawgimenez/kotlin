@@ -8,7 +8,7 @@ fun foo(x: Any) {
     fun bar() = 2
 
     x.
-    fun String.() = 3
+    <!ILLEGAL_SELECTOR!>fun String.() = 3<!>
 
     var a = 24.<!SYNTAX!><!>
     var b = 42.0
@@ -22,7 +22,7 @@ class A {
     fun baz() = 5
 
     val q = "c".
-    fun String.() = 6
+    <!ILLEGAL_SELECTOR!>fun String.() = 6<!>
 
     var a = 24.<!SYNTAX!><!>
     var b = 42.0

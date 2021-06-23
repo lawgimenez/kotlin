@@ -106,6 +106,7 @@ object DIAGNOSTICS_LIST : DiagnosticList("FirErrors") {
             parameter<String>("functionName")
             parameter<Boolean>("hasValueParameters")
         }
+        val ILLEGAL_SELECTOR by error<PsiElement>(PositioningStrategy.REFERENCED_NAME_BY_QUALIFIED)
     }
 
     val SUPER by object : DiagnosticGroup("Super") {

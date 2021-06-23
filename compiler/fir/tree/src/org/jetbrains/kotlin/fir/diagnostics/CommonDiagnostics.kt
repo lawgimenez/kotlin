@@ -5,6 +5,12 @@
 
 package org.jetbrains.kotlin.fir.diagnostics
 
+import org.jetbrains.kotlin.fir.FirElement
+
 class ConeUnexpectedTypeArgumentsError(override val reason: String, val source: Any? = null) : ConeDiagnostic()
 
 class ConeIntermediateDiagnostic(override val reason: String) : ConeDiagnostic()
+
+class IllegalSelectorError(val expression: FirElement) : ConeDiagnostic() {
+    override val reason: String get() = "The expression cannot be a selector (occur after a dot)"
+}

@@ -1041,7 +1041,7 @@ open class RawFirBuilder(
             }
 
             val target = FirFunctionTarget(labelName, isLambda = false)
-            return functionBuilder.apply {
+            val result = functionBuilder.apply {
                 source = function.toFirSourceElement()
                 moduleData = baseModuleData
                 origin = FirDeclarationOrigin.Source
@@ -1078,6 +1078,8 @@ open class RawFirBuilder(
                     function.fillDanglingConstraintsTo(it)
                 }
             }
+
+            return tryGeneratedErrorAccessExpression(function, result) ?: result
         }
 
         private fun KtDeclarationWithBody.obtainContractDescription(): FirContractDescription? {
@@ -1107,7 +1109,7 @@ open class RawFirBuilder(
             }
 
             val target: FirFunctionTarget
-            return buildAnonymousFunction {
+            val result = buildAnonymousFunction {
                 source = literalSource
                 moduleData = baseModuleData
                 origin = FirDeclarationOrigin.Source
@@ -1183,6 +1185,8 @@ open class RawFirBuilder(
             }.also {
                 bindFunctionTarget(target, it)
             }
+
+            return tryGeneratedErrorAccessExpression(expression, result) ?: result
         }
 
         private fun KtSecondaryConstructor.toFirConstructor(
@@ -1593,7 +1597,7 @@ open class RawFirBuilder(
             generateConstantExpressionByLiteral(expression)
 
         override fun visitStringTemplateExpression(expression: KtStringTemplateExpression, data: Unit): FirElement {
-            return expression.entries.toInterpolatingCall(
+            val result = expression.entries.toInterpolatingCall(
                 expression,
                 getElementType = { element ->
                     when (element) {
@@ -1608,6 +1612,8 @@ open class RawFirBuilder(
                     (this as KtStringTemplateEntryWithExpression).expression.toFirExpression(it)
                 },
             )
+
+            return tryGeneratedErrorAccessExpression(expression, result) ?: result
         }
 
         override fun visitReturnExpression(expression: KtReturnExpression, data: Unit): FirElement {
@@ -1634,7 +1640,7 @@ open class RawFirBuilder(
         }
 
         override fun visitIfExpression(expression: KtIfExpression, data: Unit): FirElement {
-            return buildWhenExpression {
+            val result = buildWhenExpression {
                 source = expression.toFirSourceElement()
                 val ktCondition = expression.condition
                 branches += buildWhenBranch {
@@ -1651,6 +1657,8 @@ open class RawFirBuilder(
                 }
                 usedAsExpression = expression.usedAsExpression
             }
+
+            return tryGeneratedErrorAccessExpression(expression, result) ?: result
         }
 
         override fun visitWhenExpression(expression: KtWhenExpression, data: Unit): FirElement {
@@ -2124,8 +2132,23 @@ open class RawFirBuilder(
         }
 
         override fun visitParenthesizedExpression(expression: KtParenthesizedExpression, data: Unit): FirElement {
-            return expression.expression?.accept(this, data)
+            val result = expression.expression?.accept(this, data)
                 ?: buildErrorExpression(expression.toFirSourceElement(), ConeSimpleDiagnostic("Empty parentheses", DiagnosticKind.Syntax))
+
+            return tryGeneratedErrorAccessExpression(expression, result) ?: result
+        }
+
+        private fun tryGeneratedErrorAccessExpression(expression: KtExpression, errorFirElement: FirElement): FirQualifiedAccessExpression? {
+            val qualifierExpression = expression.getQualifiedExpressionForSelector()
+            if (qualifierExpression != null) {
+                return generateErrorAccessExpression(
+                    expression.parent.toFirSourceElement(),
+                    expression.toFirSourceElement(),
+                    errorFirElement
+                )
+            }
+
+            return null
         }
 
         override fun visitLabeledExpression(expression: KtLabeledExpression, data: Unit): FirElement {

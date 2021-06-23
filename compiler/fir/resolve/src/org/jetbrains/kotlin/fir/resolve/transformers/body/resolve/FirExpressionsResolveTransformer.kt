@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.diagnostics.ConeSimpleDiagnostic
 import org.jetbrains.kotlin.fir.diagnostics.ConeStubDiagnostic
 import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
+import org.jetbrains.kotlin.fir.diagnostics.IllegalSelectorError
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.buildErrorExpression
 import org.jetbrains.kotlin.fir.expressions.builder.buildFunctionCall
@@ -114,6 +115,18 @@ open class FirExpressionsResolveTransformer(transformer: FirBodyResolveTransform
                 if (qualifiedAccessExpression.typeRef !is FirResolvedTypeRef) {
                     storeTypeFromCallee(qualifiedAccessExpression)
                 }
+
+                val calleeReference = qualifiedAccessExpression.calleeReference
+                if (calleeReference is FirErrorNamedReference) {
+                    val diagnostic = calleeReference.diagnostic
+                    if (diagnostic is IllegalSelectorError) {
+                        val expression = diagnostic.expression
+                        if (expression is FirExpression) {
+                            transformExpression(expression, data)
+                        }
+                    }
+                }
+
                 qualifiedAccessExpression
             }
             else -> {

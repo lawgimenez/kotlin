@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.diagnostics.ConeNotAnnotationContainer
 import org.jetbrains.kotlin.fir.diagnostics.ConeSimpleDiagnostic
 import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
+import org.jetbrains.kotlin.fir.diagnostics.IllegalSelectorError
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.*
 import org.jetbrains.kotlin.fir.expressions.impl.FirSingleExpressionBlock
@@ -196,7 +197,7 @@ class ExpressionsConverter(
                 buildSingleExpressionBlock(buildErrorExpression(null, ConeSimpleDiagnostic("Lambda has no body", DiagnosticKind.Syntax)))
             }
             context.firFunctionTargets.removeLast()
-        }.also { 
+        }.also {
             target.bind(it)
         }
     }
@@ -302,7 +303,7 @@ class ExpressionsConverter(
                 else -> if (it.isExpression()) leftArgAsFir = getAsFirExpression(it, "No left operand")
             }
         }
-        
+
         return buildTypeOperatorCall {
             source = binaryExpression.toFirSourceElement()
             operation = operationTokenName.toFirOperation()
@@ -474,7 +475,8 @@ class ExpressionsConverter(
     private fun convertQualifiedExpression(dotQualifiedExpression: LighterASTNode): FirExpression {
         var isSelector = false
         var isSafe = false
-        var firSelector: FirExpression = buildErrorExpression(null, ConeSimpleDiagnostic("Qualified expression without selector", DiagnosticKind.Syntax)) //after dot
+        var firSelector: FirExpression =
+            buildErrorExpression(null, ConeSimpleDiagnostic("Qualified expression without selector", DiagnosticKind.Syntax)) //after dot
         var firReceiver: FirExpression? = null //before dot
         dotQualifiedExpression.forEachChildren {
             when (it.tokenType) {
@@ -492,19 +494,30 @@ class ExpressionsConverter(
             }
         }
 
-        (firSelector as? FirQualifiedAccess)?.let {
+        val localFirSelector = firSelector
+        if (localFirSelector is FirQualifiedAccess) {
             if (isSafe) {
-                return it.wrapWithSafeCall(
+                return localFirSelector.wrapWithSafeCall(
                     firReceiver!!,
                     dotQualifiedExpression.toFirSourceElement(FirFakeSourceElementKind.DesugaredSafeCallExpression)
                 )
             }
 
-            it.replaceExplicitReceiver(firReceiver)
+            localFirSelector.replaceExplicitReceiver(firReceiver)
 
             @OptIn(FirImplementationDetail::class)
-            it.replaceSource(dotQualifiedExpression.toFirSourceElement())
+            localFirSelector.replaceSource(dotQualifiedExpression.toFirSourceElement())
+        } else {
+            firSelector = buildQualifiedAccessExpression {
+                source = dotQualifiedExpression.toFirSourceElement()
+                explicitReceiver = firReceiver
+                calleeReference = buildErrorNamedReference {
+                    source = firSelector.source
+                    diagnostic = IllegalSelectorError(firSelector)
+                }
+            }
         }
+
         return firSelector
     }
 
@@ -681,7 +694,7 @@ class ExpressionsConverter(
                         buildWhenBranch {
                             source = entrySource
                             condition = firCondition
-                            result = branch 
+                            result = branch
                         }
                     } else {
                         val firCondition = entry.toFirWhenConditionWithoutSubject()

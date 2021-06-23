@@ -531,8 +531,6 @@ object LightTreePositioningStrategies {
             val selector = tree.selector(node)
             if (selector != null) {
                 when (selector.tokenType) {
-                    KtNodeTypes.REFERENCE_EXPRESSION ->
-                        return markElement(selector, startOffset, endOffset, tree, node)
                     KtNodeTypes.CALL_EXPRESSION, KtNodeTypes.CONSTRUCTOR_DELEGATION_CALL, KtNodeTypes.SUPER_TYPE_CALL_ENTRY ->
                         return markElement(
                             tree.referenceExpression(selector, locateReferencedName) ?: selector,
@@ -541,6 +539,7 @@ object LightTreePositioningStrategies {
                             tree,
                             node
                         )
+                    else -> return markElement(selector, startOffset, endOffset, tree, node)
                 }
             }
             return super.mark(node, startOffset, endOffset, tree)
@@ -951,7 +950,7 @@ fun FlyweightCapableTreeStructure<LighterASTNode>.selector(node: LighterASTNode)
             dotOrDoubleColonFound = true
             continue
         }
-        if (dotOrDoubleColonFound && (child.tokenType == KtNodeTypes.CALL_EXPRESSION || child.tokenType == KtNodeTypes.REFERENCE_EXPRESSION)) {
+        if (dotOrDoubleColonFound) {
             return child
         }
     }

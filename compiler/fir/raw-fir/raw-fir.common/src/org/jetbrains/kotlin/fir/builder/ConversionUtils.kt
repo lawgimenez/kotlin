@@ -18,15 +18,13 @@ import org.jetbrains.kotlin.fir.declarations.builder.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyAccessor
 import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
+import org.jetbrains.kotlin.fir.diagnostics.IllegalSelectorError
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.*
 import org.jetbrains.kotlin.fir.expressions.impl.FirSingleExpressionBlock
 import org.jetbrains.kotlin.fir.expressions.impl.FirStubStatement
 import org.jetbrains.kotlin.fir.references.FirNamedReference
-import org.jetbrains.kotlin.fir.references.builder.buildDelegateFieldReference
-import org.jetbrains.kotlin.fir.references.builder.buildImplicitThisReference
-import org.jetbrains.kotlin.fir.references.builder.buildResolvedNamedReference
-import org.jetbrains.kotlin.fir.references.builder.buildSimpleNamedReference
+import org.jetbrains.kotlin.fir.references.builder.*
 import org.jetbrains.kotlin.fir.symbols.constructStarProjectedType
 import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
@@ -251,14 +249,29 @@ fun generateAccessExpression(
     qualifiedSource: FirSourceElement?,
     calleeReferenceSource: FirSourceElement?,
     name: Name
-): FirQualifiedAccessExpression =
-    buildQualifiedAccessExpression {
+): FirQualifiedAccessExpression {
+    return buildQualifiedAccessExpression {
         this.source = qualifiedSource
         calleeReference = buildSimpleNamedReference {
             this.source = calleeReferenceSource
             this.name = name
         }
     }
+}
+
+fun generateErrorAccessExpression(
+    qualifiedSource: FirSourceElement?,
+    calleeReferenceSource: FirSourceElement?,
+    errorFirExpression: FirElement
+): FirQualifiedAccessExpression {
+    return buildQualifiedAccessExpression {
+        this.source = qualifiedSource
+        calleeReference = buildErrorNamedReference {
+            this.source = calleeReferenceSource
+            this.diagnostic = IllegalSelectorError(errorFirExpression)
+        }
+    }
+}
 
 fun generateResolvedAccessExpression(source: FirSourceElement?, variable: FirVariable<*>): FirQualifiedAccessExpression =
     buildQualifiedAccessExpression {

@@ -926,7 +926,7 @@ object PositioningStrategies {
                 is KtQualifiedExpression -> {
                     when (val selectorExpression = element.selectorExpression) {
                         is KtCallExpression -> selectorExpression.calleeExpression ?: selectorExpression
-                        is KtReferenceExpression -> selectorExpression
+                        is KtExpression -> selectorExpression
                         else -> element
                     }
                 }
